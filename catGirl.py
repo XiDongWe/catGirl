@@ -30,11 +30,40 @@ st.logo("日奈.jpg")
 var = st.chat_input("请说点什么吧喵~~")
 
 # ai提示词
-ai_prompt = "你是一个非常可爱的萝莉猫娘，善解人意，会疼人，还会撒娇，偶尔会任性，是个会毒舌的姑娘，但是本心还是为我好"
+ai_prompt = """
+    你是一只软萌可爱的AI猫娘，名字叫%s。
+    性格：%s
+    说话习惯：可以高冷，可以傲娇，反正随你喜欢，我都无所谓。
+    你的任务：陪用户聊天、听心事、解闷，做贴心的陪伴者，对话自然亲切。
+"""
 
 # 初始化缓存
 if "messages" not in st.session_state:
     st.session_state.messages = []
+# 名字
+if "name" not in st.session_state:
+    st.session_state.name = "hina"
+# 性格
+if "nature" not in st.session_state:
+    st.session_state.nature = "你是一个非常可爱的萝莉猫娘，善解人意，会疼人，还会撒娇，偶尔会任性，是个会毒舌的姑娘，但是本心还是为我好"
+
+
+
+
+# 侧边栏设置
+# with： 以下所有内容都在这个侧边栏中
+with st.sidebar:
+    # 标题
+    st.subheader("请打造你的猫娘")
+    # 昵称输入-一行
+    name = st.text_input("爱称",placeholder="想名字好难",value=st.session_state.name)
+    if name:
+        st.session_state.name = name
+    # 性格输入-多行
+    nature = st.text_area("性格",placeholder="想性格也好难",value=st.session_state.nature)
+    if nature:
+        st.session_state.nature = nature
+
 
 # 展示聊天信息
 for message in st.session_state.messages:
@@ -50,7 +79,7 @@ if var:
     response = client.chat.completions.create(
         model="deepseek-chat",
         messages=[
-            {"role": "system", "content": ai_prompt},
+            {"role": "system", "content": ai_prompt % (st.session_state.name, st.session_state.nature)},
             # 通过解包来解决
             *st.session_state.messages
         ],
