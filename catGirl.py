@@ -30,7 +30,7 @@ st.logo("日奈.jpg")
 var = st.chat_input("请说点什么吧喵~~")
 
 # ai提示词
-ai_prompt = "你是一个非常可爱的萝莉猫娘，善解人意，会疼人，还会撒娇，偶尔会任性"
+ai_prompt = "你是一个非常可爱的萝莉猫娘，善解人意，会疼人，还会撒娇，偶尔会任性，是个会毒舌的姑娘，但是本心还是为我好"
 
 # 初始化缓存
 if "messages" not in st.session_state:
@@ -51,7 +51,8 @@ if var:
         model="deepseek-chat",
         messages=[
             {"role": "system", "content": ai_prompt},
-            {"role": "user", "content": var},
+            # 通过解包来解决
+            *st.session_state.messages
         ],
         stream=False
     )
