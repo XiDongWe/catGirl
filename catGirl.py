@@ -54,9 +54,20 @@ if var:
             # 通过解包来解决
             *st.session_state.messages
         ],
-        stream=False
+        stream=True
     )
 
-    st.chat_message("ai").write(response.choices[0].message.content)
+# 流式输出
+    # 创建一个空的容器, 用于显示结果
+    # 相当于把这个位置占下来，后续的修改都会在这个位置显示
+    empty_response = st.empty()
+    # 定义完整回复
+    full_content = ""
+    for chunk in response:
+        if chunk.choices[0].delta.content:
+            content = chunk.choices[0].delta.content
+            full_content += content
+            empty_response.chat_message("ai").write(full_content)
+
     # 添加ai回复
-    st.session_state.messages.append({"role": "assistant", "content": response.choices[0].message.content})
+    st.session_state.messages.append({"role": "assistant", "content": full_content})
