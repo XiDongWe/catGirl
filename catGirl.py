@@ -1,7 +1,8 @@
 import streamlit as st
 import os
 from openai import OpenAI
-
+import datetime
+import json
 
 # 设置页面的配置项
 st.set_page_config(
@@ -37,6 +38,31 @@ ai_prompt = """
     你的任务：陪用户聊天、听心事、解闷，做贴心的陪伴者，对话自然亲切。
 """
 
+# 方法
+def save_message():
+    # 1.保存当前对话
+    session_data = {
+        "name": st.session_state.name,
+        "nature": st.session_state.nature,
+        "current_time": st.session_state.current_time,
+        "messages": st.session_state.messages
+    }
+
+    # 新建一个文件夹来保存文件，若没有，则创建
+    if not os.path.exists("sessions"):
+        os.mkdir("sessions")
+
+    # 关键修改：处理current_time中的非法字符（空格、冒号），生成合法文件名
+    # 先清理原有时间戳的非法字符，再用于文件名
+    valid_file_name = st.session_state.current_time.replace(" ", "_").replace(":", "-")
+
+    # 使用处理后的合法文件名保存
+    with open(f"sessions/{valid_file_name}.json", "w", encoding="utf-8") as f:
+        json.dump(session_data, f, ensure_ascii=False, indent=2)
+
+
+
+
 # 初始化缓存
 if "messages" not in st.session_state:
     st.session_state.messages = []
@@ -46,13 +72,34 @@ if "name" not in st.session_state:
 # 性格
 if "nature" not in st.session_state:
     st.session_state.nature = "你是一个非常可爱的萝莉猫娘，善解人意，会疼人，还会撒娇，偶尔会任性，是个会毒舌的姑娘，但是本心还是为我好"
-
+# 时间
+if "current_time" not in st.session_state:
+    # 获取当前时间
+    current_time = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    st.session_state.current_time = current_time
 
 
 
 # 侧边栏设置
 # with： 以下所有内容都在这个侧边栏中
 with st.sidebar:
+
+    # 新增会话
+    st.subheader("控制面板")
+
+    if st.button("新增会话",width="stretch"):
+
+        # 保存对话
+        save_message()
+
+        # 2.创建新对话
+        # 重置会话
+        if st.session_state.messages != []:
+            st.session_state.messages = []
+            st.session_state.current_time = datetime.datetime.now().strftime("%Y-%m-%d %H-%M-%S")
+            save_message()
+
+
     # 标题
     st.subheader("请打造你的猫娘")
     # 昵称输入-一行
@@ -63,6 +110,12 @@ with st.sidebar:
     nature = st.text_area("性格",placeholder="想性格也好难",value=st.session_state.nature)
     if nature:
         st.session_state.nature = nature
+
+
+
+
+
+
 
 
 # 展示聊天信息
